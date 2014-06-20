@@ -1,3 +1,5 @@
+package com.codeeval.augusto.stringsubstitution.iterativeandlinkedlist;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -8,7 +10,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Created by Augusto on 20/06/2014.
+ * iterative solution to the problem using a linked list and a custom entry object.
+ * Not super fast as it does multiple passes, and generates extra objects
  */
 public class Main {
     public static void main(String[] args) throws IOException {
@@ -18,23 +21,32 @@ public class Main {
         while ((line = in.readLine()) != null) {
             String[] lineArray = line.split("\\s");
             if (lineArray.length > 0) {
-                for (String s : lineArray) {
-                    System.out.println(new Main(s).substitute());
+                for (String string : lineArray) {
+                    Main.substitute(string);
                 }
             }
         }
     }
 
-    private String stringToProcess;
-    private String[] replacements;
-
-    public Main(String input) {
+    //Here starts the magic
+    public static String substitute(String input) {
         String[] split = input.split(";");
-        this.stringToProcess = split[0];
-        this.replacements = split[1].split(",");
+        String stringToProcess = split[0];
+        String[] replacements= split[1].split(",");
+
+        LinkedList<Entry> initialStep = substitute(stringToProcess, replacements);
+
+        return collectString(initialStep);
     }
 
-    public String substitute() {
+    /**
+     *
+     * @param stringToProcess string to perform the substitution
+     * @param replacements array of replacements (even index=string, odd index=replacement)
+     * @return
+     */
+
+    private static LinkedList<Entry> substitute(String stringToProcess, String[] replacements) {
         LinkedList<Entry> initialStep = new LinkedList<>();
         initialStep.add(new Entry(stringToProcess, false));
 
@@ -46,11 +58,10 @@ public class Main {
             initialStep = processed;
 //            log(initialStep);
         }
-
-        return collectString(initialStep);
+        return initialStep;
     }
 
-    private String collectString(LinkedList<Entry> initialStep) {
+    private static String collectString(LinkedList<Entry> initialStep) {
         StringBuilder sb = new StringBuilder();
         for (Entry entry : initialStep) {
             sb.append(entry.getText());
@@ -76,23 +87,26 @@ public class Main {
 
             int nextMatch = text.indexOf(pattern);
 
-            if (nextMatch < 0) {
-                //not found
+            if (nextMatch < 0) {//not found
                 return Collections.singletonList(this);
             }
 
+            return performSubstitution(pattern, replacement, nextMatch);
+        }
 
+        private List<Entry> performSubstitution(String pattern, String replacement, int initialMatchIndex) {
             List<Entry> newEntries = new ArrayList<>();
             int endOfPreviousIteration = 0;
+            int nextMatch = initialMatchIndex;
             while (true) {
-                if (nextMatch > endOfPreviousIteration) {
+                if (endOfPreviousIteration < nextMatch) {
                     newEntries.add(new Entry(text.substring(endOfPreviousIteration, nextMatch), false));
                 }
-                if (nextMatch >= endOfPreviousIteration) {
+                if (endOfPreviousIteration <= nextMatch) {
                     newEntries.add(new Entry(replacement, true));
                 } else {
                     //end of string
-                    if( endOfPreviousIteration < text.length()) {
+                    if (endOfPreviousIteration < text.length()) {
                         newEntries.add(new Entry(text.substring(endOfPreviousIteration), false));
                     }
                     break;
@@ -101,8 +115,6 @@ public class Main {
                 endOfPreviousIteration = nextMatch + pattern.length();
                 nextMatch = text.indexOf(pattern, endOfPreviousIteration);
             }
-            // 00 00 0
-
             return newEntries;
         }
 
@@ -126,10 +138,5 @@ public class Main {
         }
 
         System.out.print("\n");
-    }
-
-
-    private static void log(String message) {
-        System.out.println(message);
     }
 }
