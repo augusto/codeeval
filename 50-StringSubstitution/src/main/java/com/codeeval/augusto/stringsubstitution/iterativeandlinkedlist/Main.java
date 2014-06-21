@@ -22,7 +22,7 @@ public class Main {
             String[] lineArray = line.split("\\s");
             if (lineArray.length > 0) {
                 for (String string : lineArray) {
-                    Main.substitute(string);
+                    System.out.println(Main.substitute(string));
                 }
             }
         }
